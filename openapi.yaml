@@ -1,0 +1,758 @@
+openapi: 3.0.1
+info:
+  title: SwagShop API
+  version: 1.0.0
+  description: >-
+    A RESTful API for E-Commerce back-ends. It uses Node.js, Express.js, and
+    PostgreSQL.
+tags:
+  - name: Users
+    description: Operations used for interfacing with users.
+  - name: Carts
+    description: Operations used for interfacing with users' carts.
+  - name: Products
+    description: Operations used for intefacing with products.
+  - name: Product Images
+    description: Operations used for intefacing with product images.
+  - name: Orders
+    description: Operations used for intefacing with orders.
+  - name: Authentication
+    description: Operations used for logging users in and out.
+paths:
+  /users:
+    post:
+      summary: Adds a new user
+      operationId: userAdd
+      requestBody:
+        content:
+          application/json:
+            example: |-
+              {
+                "email": "alice@example.com",
+                "name": "Alice",
+                "password": "53CR3T_P@55W0RD"
+              }
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              example: |-
+                {
+                  "id": 1,
+                  "email": "alice@example.com",
+                  "name": "Alice"
+                }
+        '400':
+          description: Malformed or missing data
+        default:
+          description: Default error sample response
+      tags:
+        - Users
+  /users/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        description: The id of the user
+    get:
+      summary: Returns a user
+      operationId: userRead
+      responses:
+        '200':
+          description: Successfuly found user
+          content:
+            application/json:
+              example: |-
+                {
+                  "id": 1,
+                  "email": "alice@example.com",
+                  "name": "Alice",
+                  "admin": true
+                }
+        '404':
+          description: User not found
+        default:
+          description: Default error sample response
+      tags:
+        - Users
+    patch:
+      summary: Updates a user
+      operationId: userEdit
+      requestBody:
+        content:
+          application/json:
+            example: |-
+              {
+                "email": "alice@example.net",
+                "name": "Alice Anderson",
+                "password": "53CR3T_P@55W0RD"
+              }
+      responses:
+        '204':
+          description: Successfuly modified user
+        '400':
+          description: Malformed or missing data
+        '404':
+          description: User not found
+        default:
+          description: Default error sample response
+      tags:
+        - Users
+    delete:
+      summary: Deletes a user
+      operationId: userDelete
+      responses:
+        '204':
+          description: Successfuly deleted user
+        '404':
+          description: User not found
+        default:
+          description: Default error sample response
+      tags:
+        - Users
+  /users/{id}/cart:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        description: The id of the user
+    get:
+      summary: Returns the user's cart
+      description: Returns a list containing all products in the user's cart
+      operationId: cartBrowse
+      responses:
+        '200':
+          description: Successfuly retrieved the user's cart
+          content:
+            application/json:
+              example: |-
+                [
+                  {
+                    "product": {
+                      "id": 5,
+                      "name": "AAA Batteries (12 pack)",
+                      "description": "Rechargeable, pre-charged, 1.2 volt, AAA batteries.",
+                      "price": 20.00
+                    },
+                    "count": 2
+                  },
+                  {
+                    "product": {
+                      "id": 3,
+                      "name": "Blootooth Wireless Speaker",
+                      "description": "The Blootooth Wireless Speaker is a portable, stereo, bluetooth speaker. It has 24 hours of battery life, and supports Bluetooth 5.0 with a range of 50 feet.",
+                      "price": 35.00
+                    },
+                    "count": 12
+                  },
+                  {
+                    "product": {
+                      "id": 4,
+                      "name": "Bluetooth Broadcaster",
+                      "description": "Transmits via Bluetooth 5.0, to up to 20 devices. Supports RCA, XLR, TS, TRS, and 3.5 MM cable types.",
+                      "price": 50.00
+                    },
+                    "count": 1
+                  }
+                ]
+        '204':
+          description: The user's cart is empty
+        '404':
+          description: User not found
+        default:
+          description: Default error sample response
+      tags:
+        - Carts
+    post:
+      summary: Adds a new product to the cart
+      operationId: cartAdd
+      requestBody:
+        content:
+          application/json:
+            example: |-
+              {
+                "productId": 4,
+                "productCount": 1
+              }
+      responses:
+        '204':
+          description: Successfuly added the product to the user's cart
+        '404':
+          description: User not found
+        default:
+          description: Default error sample response
+      tags:
+        - Carts
+  /users/{id}/cart/{item}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        description: The id of the user
+      - in: path
+        name: item
+        required: true
+        schema:
+          type: integer
+        description: The index of the item in the cart to modify
+    patch:
+      summary: Modifies an item in the cart
+      description: Changes the id or count of a specific item in the user's cart.
+      operationId: cartEdit
+      requestBody:
+        content:
+          application/json:
+            example: |-
+              {
+                "productId": 4,
+                "productCount": 1
+              }
+      responses:
+        '204':
+          description: Successfuly added the product to the user's cart
+        '400':
+          description: Invalid item index
+        '404':
+          description: User not found
+        default:
+          description: Default error sample response
+      tags:
+        - Carts
+    delete:
+      summary: Deletes an item in the cart
+      description: Changes the product or amount of a specific item.
+      operationId: cartDelete
+      responses:
+        '204':
+          description: Successfuly deleted the product from the user's cart
+        '400':
+          description: Invalid item index
+        '404':
+          description: User not found
+        default:
+          description: Default error sample response
+      tags:
+        - Carts
+  /products:
+    get:
+      summary: Returns all products
+      operationId: productBrowse
+      responses:
+        '200':
+          description: Successfuly retrieved all products
+          content:
+            application/json:
+              example: |-
+                [
+                  {
+                    "id": 1,
+                    "name": "AAA Batteries (12 pack)",
+                    "description": "Non-rechargeable, 1.2 volt, 800 mAh, nickel metal hydride, AAA batteries.",
+                    "price": 30.00
+                  },
+                  {
+                    "id": 2,
+                    "name": "Gaming Headphones",
+                    "description": "Over-ear, sound-proof, high-fidelity headphones, with a quality, built-in microphone. Supports wired and wireless connections, via a 3.5mm cable, and Bluetooth 5.0, respectively.",
+                    "price": 35.00
+                  },
+                  {
+                    "id": 3,
+                    "name": "Blootooth Wireless Speaker",
+                    "description": "The Blootooth Wireless Speaker is a portable, stereo, bluetooth speaker. It has 24 hours of battery life, and supports Bluetooth 5.0 with a range of 50 feet.",
+                    "price": 35.00
+                  },
+                  {
+                    "id": 4,
+                    "name": "Bluetooth Broadcaster",
+                    "description": "Transmits via Bluetooth 5.0, to up to 20 devices. Supports RCA, XLR, TS, TRS, and 3.5 MM cable types.",
+                    "price": 50.00
+                  },
+                  {
+                    "id": 5,
+                    "name": "AAA Rechargable Batteries (12 pack)",
+                    "description": "Rechargeable, pre-charged, 1.2 volt, AAA batteries.",
+                    "price": 20.00
+                  }
+                ]
+        default:
+          description: Default error sample response
+      tags:
+        - Products
+    post:
+      summary: Adds a new product
+      operationId: productAdd
+      requestBody:
+        description: A new Product object
+        content:
+          application/json:
+            example: |-
+              {
+                "name": "AAA Batteries (12 pack)",
+                "description": "Non-rechargeable, 1.2 volt, 800 mAh, nickel metal hydride, AAA batteries.",
+                "price": 30.00
+              }
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              example: |-
+                {
+                  "id": 1,
+                  "name": "AAA Batteries (12 pack)",
+                  "description": "Non-rechargeable, 1.2 volt, 800 mAh, nickel metal hydride, AAA batteries.",
+                  "price": 30.00
+                }
+        '400':
+          description: Malformed or missing data
+        default:
+          description: Default error sample response
+      tags:
+        - Products
+  /products/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        description: The id of the product
+    get:
+      summary: Returns a product
+      operationId: productRead
+      responses:
+        '200':
+          description: Successfuly retrieved product
+          content:
+            application/json:
+              example: |-
+                {
+                  "id": 1,
+                  "name": "AAA Batteries (12 pack)",
+                  "description": "Non-rechargeable, 1.2 volt, 800 mAh, nickel metal hydride, AAA batteries.",
+                  "price": 30.00
+                }
+        '404':
+          description: Product not found
+        default:
+          description: Default error sample response
+      tags:
+        - Products
+    patch:
+      summary: Modifies a product
+      operationId: productEdit
+      requestBody:
+        content:
+          application/json:
+            example: |-
+              {
+                "id": 1,
+                "name": "AAA Batteries (12 pack)",
+                "description": "Non-rechargeable, 1.2 volt, 800 mAh, nickel metal hydride, AAA batteries.",
+                "price": 30.00
+              }
+      responses:
+        '200':
+          description: Successfuly modified product
+          content:
+            application/json:
+              example: |-
+                {
+                  "id": 1,
+                  "name": "AAA Batteries (12 pack)",
+                  "description": "Non-rechargeable, 1.2 volt, 800 mAh, nickel metal hydride, AAA batteries.",
+                  "price": 30.00
+                }
+        '400':
+          description: Malformed or missing data
+        '404':
+          description: Product not found
+        default:
+          description: Default error sample response
+      tags:
+        - Products
+    delete:
+      summary: Deletes a product
+      operationId: productDelete
+      responses:
+        '204':
+          description: Successfuly deleted product
+        '404':
+          description: Product not found
+        default:
+          description: Default error sample response
+      tags:
+        - Products
+  /products/{productId}/images:
+    parameters:
+      - in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        description: The id of the product
+    get:
+      summary: Retrieves all product images
+      operationId: productImagesBrowse
+      responses:
+        '200':
+          description: Successfuly retrieved all product images
+          content:
+            application/json:
+              example: |-
+                [
+                  "api.addme.com/products/1/images/1",
+                  "api.addme.com/products/1/images/2",
+                  "api.addme.com/products/1/images/3",
+                  "api.addme.com/products/1/images/4",
+                  "api.addme.com/products/1/images/5"
+                ]
+        '204':
+          description: Successfuly found product, but the product has no images
+        '404':
+          description: Product not found
+        default:
+          description: Default error sample response
+      tags:
+        - Product Images
+    post:
+      summary: Adds a new product image
+      operationId: productImagesAdd
+      requestBody:
+        $ref: "#/components/requestBodies/base64Image"
+      responses:
+        '201':
+          description: Successfuly created the product image
+          content:
+            text/plain:
+              example: api.addme.com/products/1/images/6
+        '400':
+          description: Malformed or missing data
+        '404':
+          description: Product not found
+        default:
+          description: Default error sample response
+      tags:
+        - Product Images
+  /products/{productId}/images/{imageId}:
+    parameters:
+      - in: path
+        name: productId
+        required: true
+        schema:
+          type: integer
+        description: The id of the product
+      - in: path
+        name: imageId
+        required: true
+        schema:
+          type: integer
+        description: The id of the image
+    get:
+      summary: Retrieves a product image
+      operationId: productImagesRead
+      responses:
+        '200':
+          description: Successfuly retrieved the product image
+        '400':
+          description: Invalid image index
+        '404':
+          description: Product not found
+        default:
+          description: Default error sample response
+      tags:
+        - Product Images
+    patch:
+      summary: Replaces a product image
+      operationId: productImagesEdit
+      requestBody:
+        $ref: "#/components/requestBodies/base64Image"
+      responses:
+        '204':
+          description: Successfuly replaced the product image
+        '400':
+          description: Invalid image index
+        '404':
+          description: Product not found
+        default:
+          description: Default error sample response
+      tags:
+        - Product Images
+    delete:
+      summary: Deletes a product image
+      operationId: productImagesDelete
+      responses:
+        '204':
+          description: Successfuly deleted the product image
+        '400':
+          description: Invalid image index
+        '404':
+          description: Product not found
+        default:
+          description: Default error sample response
+      tags:
+        - Product Images
+  /orders:
+    post:
+      summary: Adds a new order
+      operationId: orderAdd
+      requestBody:
+        content:
+          application/json:
+            example: |-
+              {
+                "userId": 1,
+                "items": [
+                  {
+                    "id": 5,
+                    "count": 2
+                  },
+                  {
+                    "id": 3,
+                    "count": 12
+                  },
+                  {
+                    "id": 4,
+                    "count": 1
+                  }
+                ]
+              }
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              example: |-
+                {
+                  "id": 1,
+                  "datetime": "2024-03-1T14:25:43.511Z",
+                  "status": "pending",
+                  "userId": 1,
+                  "items": [
+                    {
+                      "id": 5,
+                      "name": "AAA Batteries (12 pack)",
+                      "price": 20.00,
+                      "count": 2
+                    },
+                    {
+                      "id": 3,
+                      "name": "Blootooth Wireless Speaker",
+                      "price": 35.00,
+                      "count": 12
+                    },
+                    {
+                      "id": 4,
+                      "name": "Bluetooth Broadcaster",
+                      "price": 50.00,
+                      "count": 1
+                    }
+                  ]
+                }
+        '400':
+          description: Malformed or missing data
+        default:
+          description: Default error sample response
+      tags:
+        - Orders
+  /orders/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        description: The id of the order
+    get:
+      summary: Returns an order
+      operationId: orderRead
+      responses:
+        '200':
+          description: Successfuly retrieved order
+          content:
+            application/json:
+              example: |-
+                {
+                  "id": 1,
+                  "datetime": "2024-03-1T14:25:43.511Z",
+                  "status": "pending",
+                  "userId": 1,
+                  "items": [
+                    {
+                      "id": 5,
+                      "count": 2
+                    },
+                    {
+                      "id": 3,
+                      "count": 12
+                    },
+                    {
+                      "id": 4,
+                      "count": 1
+                    }
+                  ]
+                }
+        '404':
+          description: Order not found
+        default:
+          description: Default error sample response
+      tags:
+        - Orders
+    patch:
+      summary: Updates an Order
+      operationId: orderEdit
+      requestBody:
+        content:
+          application/json:
+            example: |-
+                {
+                  "id": 1,
+                  "datetime": "2024-03-1T14:25:43.511Z",
+                  "status": "fulfilled",
+                  "userId": 2,
+                  "items": [
+                    {
+                      "id": 2,
+                      "count": 5
+                    },
+                    {
+                      "id": 12,
+                      "count": 3
+                    },
+                    {
+                      "id": 1,
+                      "count": 4
+                    }
+                  ]
+                }
+      responses:
+        '204':
+          description: Successfuly modified order
+        '400':
+          description: Malformed or missing data
+        '404':
+          description: Order not found
+        default:
+          description: Default error sample response
+      tags:
+        - Orders
+    delete:
+      summary: Deletes an order
+      operationId: orderDelete
+      responses:
+        '204':
+          description: Successfuly deleted order
+        '404':
+          description: Order not found
+        default:
+          description: Default error sample response
+      tags:
+        - Orders
+  /orders/cart:
+    post:
+      summary: Places a new order based on the user's cart
+      description: Places a new order based on the contents of the user's cart, and clears the cart.
+      operationId: ordersCart
+      responses:
+        '204':
+          description: Successfuly placed the order and cleared the cart
+        '400':
+          description: The cart was already empty
+        default:
+          description: Default error sample response
+      tags:
+        - Carts
+        - Orders
+  /users/{id}/orders:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        description: The id of the user
+    get:
+      summary: Returns the user's orders
+      description: Returns a list containing all of the user's orders
+      operationId: usersOrders
+      responses:
+        '200':
+          description: Successfuly retrieved the user's orders
+          content:
+            application/json:
+              example: |-
+                [
+                  {
+                    "id": 1,
+                    "datetime": "2024-03-1T14:25:43.511Z",
+                    "status": "fulfilled"
+                  },
+                  {
+                    "id": 2,
+                    "datetime": "2024-03-2T15:25:43.511Z",
+                    "status": "canceled"
+                  },
+                  {
+                    "id": 3,
+                    "datetime": "2024-03-3T15:25:43.511Z",
+                    "status": "pending"
+                  }
+                ]
+        '204':
+          description: The user has not made any orders
+        '404':
+          description: User not found
+        default:
+          description: Default error sample response
+      tags:
+        - Users
+        - Orders
+  /login:
+    parameters:
+      - in: query
+        name: email
+        schema:
+          type: string
+      - in: query
+        name: password
+        schema:
+          type: string
+    post:
+      summary: Used to log the user in
+      operationId: login
+      responses:
+        '204':
+          description: Successfuly logged the user in
+        '404':
+          description: User not found
+        default:
+          description: Default error sample response
+      tags:
+        - Authentication
+        - Users
+  /logout:
+    post:
+      summary: Used to log the user out
+      operationId: logout
+      responses:
+        '204':
+          description: Successfuly logged the user out
+        default:
+          description: Default error sample response
+      tags:
+        - Authentication
+        - Users
+components:
+  requestBodies:
+    base64Image:
+      content:
+        text/plain:
+          example: data:image/jpeg;base64,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
